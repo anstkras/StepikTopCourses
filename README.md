@@ -1,4 +1,5 @@
 # StepikTopCourses
+The program outputs top courses on Stepik.
 
 Build a jar file:
 `./gradlew build`
