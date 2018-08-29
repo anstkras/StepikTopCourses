@@ -4,8 +4,6 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
-const val THREADS_NUMBER = 8
-
 fun main(vararg args: String) {
     val topCount = args.getOrNull(0)?.toIntOrNull()
     if (args.size > 1 || topCount === null || topCount <= 0) {
@@ -18,8 +16,10 @@ fun main(vararg args: String) {
         Integer.compare(learnersCount1, learnersCount2)
     })
 
-    val countdown = CountDownLatch(THREADS_NUMBER)
-    val threadPool = Executors.newFixedThreadPool(THREADS_NUMBER)
+    val threadsNumber = Runtime.getRuntime().availableProcessors()
+
+    val countdown = CountDownLatch(threadsNumber)
+    val threadPool = Executors.newFixedThreadPool(threadsNumber)
     class Task(var page: Int) : Runnable {
         override fun run() = try {
             val url = "https://stepik.org/api/courses?page=$page"
@@ -41,7 +41,7 @@ fun main(vararg args: String) {
             }
 
             if (json.get("meta").asObject().get("has_next").asBoolean()) {
-                page += THREADS_NUMBER
+                page += threadsNumber
                 threadPool.execute(this)
             } else {
                 countdown.countDown()
@@ -50,7 +50,7 @@ fun main(vararg args: String) {
             countdown.countDown()
         }
     }
-    repeat(THREADS_NUMBER) { n ->
+    repeat(threadsNumber) { n ->
         threadPool.execute(Task(n + 1))
     }
     countdown.await()
